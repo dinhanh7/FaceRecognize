@@ -31,10 +31,13 @@ class ort_v5:
 
         # self.net.eval()
         if self.webcam:
-          vid = cv2.VideoCapture(0)
+          source = self.webcam if isinstance(self.webcam, str) else 0
+          vid = cv2.VideoCapture(source)
           cnt = 0
           while True:
             ret, frame = vid.read()
+            if not ret:
+                break
             # print(frame.shape)
             # cnt += 1
             # if (cnt%20 != 0):
@@ -43,9 +46,9 @@ class ort_v5:
             output = self.detect_img(frame)
             t_2 = time.time()
             # print(t_2 - t_1)
-            cv2.imshow('Face Detection', output)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            # cv2.imshow('Face Detection', output)
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
           vid.release()
           cv2.destroyAllWindows()         
         else:
@@ -163,8 +166,12 @@ class ort_v5:
                 # if distance<=torch.cdist(feat, tmp):
                 if distance<=np.linalg.norm(feat - w[lc]):
                     lc=i                     
+            
+            detected_name = ts[lc].replace('.npy','')
+            print(f"Detected: {detected_name}")
+
             cv2.rectangle(img,box[:2],box[2:],color,2)
-            cv2.putText(img,ts[lc].replace('.npy',''),(box[0], box[1] - 2),cv2.FONT_HERSHEY_SIMPLEX,0.75,[225, 255, 255],thickness=2) 
+            cv2.putText(img,detected_name,(box[0], box[1] - 2),cv2.FONT_HERSHEY_SIMPLEX,0.75,[225, 255, 255],thickness=2) 
             # cv2.putText(img,'person'.replace('.npy',''),(box[0], box[1] - 2),cv2.FONT_HERSHEY_SIMPLEX,0.75,[225, 255, 255],thickness=2)
         return img
  
@@ -353,5 +360,5 @@ iou_thres = 0.5
 img_size = 640
 classes_txt = './/yolov5-face//classes.txt'
 
-ORT= ort_v5(image, weights, backbone, conf, iou_thres, (img_size, img_size), classes=classes_txt, webcam=True)
+ORT= ort_v5(image, weights, backbone, conf, iou_thres, (img_size, img_size), classes=classes_txt, webcam='danhtest.mp4')
 ORT()
